@@ -4,7 +4,7 @@ angular.module('ffxivCraftOptWeb.components')
   .directive('macros', function () {
     return {
       restrict: 'E',
-      templateUrl: '../../components/macros.html',
+      templateUrl: 'components/macros.html',
       scope: {
         sequence: '=',
         options: '='
