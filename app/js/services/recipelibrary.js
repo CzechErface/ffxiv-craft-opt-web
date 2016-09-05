@@ -25,7 +25,7 @@ var cache_key = function (lang, cls) {
   return lang + ":" + cls
 };
 
-RecipeLibrary.prototype.recipesForClass = function(lang, cls) {
+RecipeLibrary.prototype.recipesForClass = function(lang, cls, tieCls) {
   if (!angular.isDefined(lang)) lang = 'en';
   var key = cache_key(lang, cls);
   var promise = cache[key];
@@ -33,6 +33,8 @@ RecipeLibrary.prototype.recipesForClass = function(lang, cls) {
     promise = this.$http.get('data/recipedb/' + cls + '.json').then(
       function (r) {
         var result = r.data.map(recipeForLang.bind(this, lang));
+        for (var i = 0; i < result.length; i++)
+          result[i].classOriginator = cls;
         result.sort(function (a, b) {
           var diff = a.level - b.level;
           if (diff !== 0) return diff;

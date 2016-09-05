@@ -3,7 +3,7 @@
   <div class="row-fluid ">
     <div class="recipe-search-control">
       <form class="form-inline">
-        <div class="dropdown">
+        <div class="dropdown" ng-show="recipeSearch.requireClass">
           <div class="input-append">
             <span class="input-small uneditable-input">{{recipe.cls}}</span>
 
@@ -34,16 +34,18 @@
               <li class="loading" ng-show="recipeSearch.loading"><i class="fa fa-spinner fa-spin"></i> Loading...
               </li>
               <li ng-hide="recipeSearch.loading"
-                  ng-repeat="r in recipeSearch.list | orderBy:recipeSearch.order"
+                  ng-repeat="r in recipeSearch.list | orderBy:recipeSearch.order track by $index"
                   ng-class="{active: $index === recipeSearch.selected}"
                   id="recipeSearchElement{{$index}}"
                   ng-mouseover="recipeSearch.selected=$index"
-                  ng-click="recipeSelected(r.name)">
-                <a ng-click="recipeSelected(r.name)">[{{r.baseLevel}}{{'*'.repeat(r.stars)}}] {{r.name}}</a>
+                  ng-click="recipeSelected(r)">
+                <a ng-click="recipeSelected(r)">[{{r.baseLevel}}{{'*'.repeat(r.stars)}}] {{r.name}} {{r.class ? '('+r.class+')' : ''}}</a>
               </li>
             </ul>
           </div>
         </div>
+        
+        <input type="checkbox" style="margin-left:20px;" ng-model="recipeSearch.requireClass" ng-click="setupRecipeListRequirement()"> Search All Classes
       </form>
     </div>
     <div class="row-fluid">

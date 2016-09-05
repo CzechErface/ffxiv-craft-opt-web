@@ -25,7 +25,7 @@ String.prototype.removeAccent = function(){
 
 
 angular.module('ffxivCraftOptWeb.controllers').controller('SimulatorController', function ($scope, $filter, $modal,
-  $rootScope, $translate, $timeout, $state, _recipeLibrary, _simulator, _actionsByName)
+  $rootScope, $translate, $timeout, $state, _recipeLibrary, _simulator, _actionsByName, _allClasses)
 {
 
   // Global page state
@@ -45,13 +45,19 @@ angular.module('ffxivCraftOptWeb.controllers').controller('SimulatorController',
 
   $scope.recipeSearch = {
     list: [],
+    requireClass: (localStorage.requireClassForRecipeSearch && localStorage.requireClassForRecipeSearch == 'no' ? false : true),
     selected: 0,
     text: '',
     order: ['level','name']
   };
 
+  var updateRecipeSearchListWithRequirements = function(requireClass) {
+    var forcedClasses = $scope.recipeSearch.requireClass ? null : _allClasses;
+    $scope.updateRecipeSearchList(forcedClasses);
+  };
+  
   $scope.$watch('recipeSearch.text', function () {
-    $scope.updateRecipeSearchList();
+    updateRecipeSearchListWithRequirements();
   });
 
   $scope.$on('recipe.cls.changed', function () {
@@ -59,42 +65,72 @@ angular.module('ffxivCraftOptWeb.controllers').controller('SimulatorController',
     $scope.updateRecipeSearchList();
   });
 
-  $scope.updateRecipeSearchList = function() {
+  $scope.$watch('recipeSearch.requireClass', function () {
+    //IMPORTANT: This call occurs before 'requireClass' is changed, so we check for the opposite (yes, this is unintuitive)
+    localStorage.requireClassForRecipeSearch = $scope.recipeSearch.requireClass ? 'yes' : 'no';
+    $scope.recipeSearch.text = '';
+    updateRecipeSearchListWithRequirements();
+  });
+  
+  $scope.setupRecipeListRequirement = function() {
+    
+  };
+
+  $scope.updateRecipeSearchList = function(cls) {
     $scope.recipeSearch.loading = true;
-    var p = _recipeLibrary.recipesForClass($translate.use(), $scope.recipe.cls);
-    p.then(function (recipes) {
-      // Restrict recipes to crafter level
-      recipes = $filter('filter')(recipes, {baseLevel: $scope.crafter.stats[$scope.recipe.cls].level},
-        function (recipeLevel, crafterLevel) {
-          if (!crafterLevel || crafterLevel >= recipeLevel - 5)
-            return true;
-          return false;
-        });
-
-      // Then filter on text search, ignoring case and accents
-      $scope.recipeSearch.list =
-        $filter('filter')(recipes, {name: $scope.recipeSearch.text}, function (recipeName, recipeSearch) {
-          if (recipeName === undefined || recipeSearch === undefined)
-            return true;
-
-          return recipeName.removeAccent().toUpperCase().indexOf(recipeSearch.removeAccent().toUpperCase()) >= 0;
-        });
-
-      $scope.recipeSearch.selected = Math.min($scope.recipeSearch.selected, $scope.recipeSearch.list.length - 1);
-      $scope.recipeSearch.loading = false;
-    }, function (err) {
-      console.error("Failed to retrieve recipes:", err);
+    $scope.recipeSearch.list = [];
+    var failed = false;
+    if (!cls)
+      cls = [$scope.recipe.cls];
+    var multipleClasses = cls.length > 1;
+    for (var i = 0, len = cls.length; i < len && !failed; i++) {
+      var p = _recipeLibrary.recipesForClass($translate.use(), cls[i]);
+      p.then(function (recipes) {
+        // Restrict recipes to crafter level
+        var baseLevel = {baseLevel: recipes.length > 0 ? $scope.crafter.stats[recipes[0].classOriginator].level : 9999};
+        recipes = $filter('filter')(recipes, baseLevel,
+          function (recipeLevel, crafterLevel) {
+            if (!crafterLevel || crafterLevel >= recipeLevel - 5)
+              return true;
+            return false;
+          });
+  
+        // Then filter on text search, ignoring case and accents
+        var tmpList =
+          $filter('filter')(recipes, {name: $scope.recipeSearch.text}, function (recipeName, recipeSearch) {
+            if (recipeName === undefined || recipeSearch === undefined)
+              return true;
+  
+            return recipeName.removeAccent().toUpperCase().indexOf(recipeSearch.removeAccent().toUpperCase()) >= 0;
+          });
+        for (var j = 0, tmpListLen = tmpList.length; j < tmpListLen; j++) {
+          var tmpListItem = tmpList[j];
+          if (multipleClasses)
+            tmpListItem.class = tmpListItem.classOriginator;
+          else
+            delete tmpListItem.class;
+          $scope.recipeSearch.list.push(tmpList[j]);
+        }
+      }, function (err) {
+        console.error("Failed to retrieve recipes:", err);
+        failed = true;
+      });
+    }
+    if (failed) {
       $scope.recipeSearch.list = [];
       $scope.recipeSearch.selected = -1;
       $scope.recipeSearch.loading = false;
-    });
+    } else {
+      $scope.recipeSearch.selected = Math.min($scope.recipeSearch.selected, $scope.recipeSearch.list.length - 1);
+      $scope.recipeSearch.loading = false;
+    }
   };
 
   $rootScope.$on('$translateChangeSuccess', function () {
     $scope.updateRecipeSearchList();
   });
 
-  $scope.recipeSelected = function (name) {
+  $scope.recipeSelected = function (r) {
     // force menu to close and search field to lose focus
     // improves behaviour on touch devices
     var root = document.getElementById('recipe-menu-root');
@@ -104,7 +140,13 @@ angular.module('ffxivCraftOptWeb.controllers').controller('SimulatorController',
     document.getElementById('recipe-search-text').blur();
 
     var cls = $scope.recipe.cls;
-    var p = angular.copy(_recipeLibrary.recipeForClassByName($translate.use(), cls, name));
+    if (!$scope.recipeSearch.requireClass) {
+      if (r.class)
+        cls = r.class;
+      else
+        alert('Missing class for global recipe selection');
+    }
+    var p = angular.copy(_recipeLibrary.recipeForClassByName($translate.use(), cls, r.name));
     p.then(function (recipe) {
       recipe = angular.copy(recipe);
       recipe.cls = cls;
@@ -118,7 +160,7 @@ angular.module('ffxivCraftOptWeb.controllers').controller('SimulatorController',
   $scope.onSearchKeyPress = function (event) {
     if (event.which == 13) {
       event.preventDefault();
-      $scope.recipeSelected($scope.recipeSearch.list[$scope.recipeSearch.selected].name);
+      $scope.recipeSelected($scope.recipeSearch.list[$scope.recipeSearch.selected]);
     }
   };
 
