@@ -29,6 +29,10 @@
       <action-sequence cls="recipe.cls" actions="pageState.solverStatus.sequence" action-classes="seqeunceActionClasses" tooltip-placement="right"></action-sequence>
     </div>
   </div>
+  <div ng-show="!pageState.solverStatus.running">
+    <h5>Required Cross-Class Skills</h5>
+    <cross-class-depiction cls="recipe.cls" actions="pageState.solverStatus.sequence"></cross-class-depiction>
+  </div>
   <tabset>
     <tab heading="Probalistic Sim" active="logTabs.ga.active">
       <pre>{{pageState.solverStatus.logs.ga}}</pre>

@@ -1,0 +1,6 @@
+<div class="well well-small" ng-class="class">
+  <span class="action" ng-repeat="(crossClass, isPresent) in getCrossClasses() track by $index">
+    <img ng-src="img/classes/{{crossClass}}.png" style="{{isPresent ? '' : 'opacity:0.1;'}}"/>&nbsp;
+    <br ng-if="$index % 3 == 2">
+  </span>
+</div>
