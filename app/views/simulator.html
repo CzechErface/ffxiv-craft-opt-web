@@ -66,6 +66,7 @@
                   <td>
                     <input class="input-mini" type="number" min="0" required force-numeric ng-model="bonusStats.craftsmanship"/>
                   </td>
+                  <td></td>
                 </tr>
                 <tr>
                   <td>Control</td>
@@ -74,6 +75,7 @@
                   <td>
                     <input class="input-mini" type="number" min="0" required force-numeric ng-model="bonusStats.control"/>
                   </td>
+                  <td></td>
                 </tr>
                 <tr>
                   <td>CP</td>
@@ -82,6 +84,7 @@
                   <td>
                     <input class="input-mini" type="number" min="0" required force-numeric ng-model="bonusStats.cp"/>
                   </td>
+                  <td></td>
                 </tr>
                 <tr>
                   <td>Start Quality</td>
@@ -89,6 +92,9 @@
                   <td>+</td>
                   <td>
                     <input class="input-mini" type="number" min="0" required force-numeric ng-model="bonusStats.startQuality"/>
+                  </td>
+                  <td>
+                    <i class="icono-reset" ng-click="bonusStats.startQuality = 0"></i>
                   </td>
                 </tr>
               </table>
