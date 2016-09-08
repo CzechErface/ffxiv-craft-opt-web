@@ -10,20 +10,34 @@ angular.module('ffxivCraftOptWeb.components')
         cls: '='
       },
       controller: function ($scope, _actionsByName) {
+        var crossClassesMemoized = {
+          'Carpenter': [],
+          'Blacksmith': [],
+          'Armorer': [],
+          'Goldsmith': [],
+          'Leatherworker': [],
+          'Weaver': [],
+          'Alchemist': [],
+          'Culinarian': []
+        };
+        var crossClasses = [
+          {cls: 'Carpenter', actions: crossClassesMemoized['Carpenter']},
+          {cls: 'Blacksmith', actions: crossClassesMemoized['Blacksmith']},
+          {cls: 'Armorer', actions: crossClassesMemoized['Armorer']},
+          {cls: 'Goldsmith', actions: crossClassesMemoized['Goldsmith']},
+          {cls: 'Leatherworker', actions: crossClassesMemoized['Leatherworker']},
+          {cls: 'Weaver', actions: crossClassesMemoized['Weaver']},
+          {cls: 'Alchemist', actions: crossClassesMemoized['Alchemist']},
+          {cls: 'Culinarian', actions: crossClassesMemoized['Culinarian']}
+        ];
         $scope.getCrossClasses = function() {
-          var crossClasses = {
-            'Carpenter': false,
-            'Blacksmith': false,
-            'Armorer': false,
-            'Goldsmith': false,
-            'Leatherworker': false,
-            'Weaver': false,
-            'Alchemist': false,
-            'Culinarian': false
-          };
           var cls = $scope.cls;
-          for (var i = 0, len = $scope.actions.length; i < len; i++) {
-            var action = $scope.actions[i];
+          //Wipe memoized values first
+          for (var prop in crossClassesMemoized)
+            if (crossClassesMemoized.hasOwnProperty(prop))
+              crossClassesMemoized[prop].length = 0;
+          for (var actionIndex = 0, actionsLen = $scope.actions.length; actionIndex < actionsLen; actionIndex++) {
+            var action = $scope.actions[actionIndex];
             if (!angular.isDefined(action)) {
               console.error('undefined actionName');
               continue;
@@ -34,8 +48,18 @@ angular.module('ffxivCraftOptWeb.components')
               continue;
             }
             var infoCls = info.cls;
-            if (infoCls != 'All' && infoCls != cls)
-              crossClasses[infoCls] = true;
+            if (infoCls != 'All' && infoCls != cls) {
+              var memoized = crossClassesMemoized[infoCls];
+              var found = false;
+              for (var memoizedIndex = 0, memoizedLength = memoized.length; memoizedIndex < memoizedLength; memoizedIndex++) {
+                if (memoized[memoizedIndex] == action) {
+                  found = true;
+                  break;
+                }
+              }
+              if (!found)
+                crossClassesMemoized[infoCls].push(action);
+            }
           }
           return crossClasses;
         };
