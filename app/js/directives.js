@@ -15,6 +15,7 @@ angular.module('ffxivCraftOptWeb.directives', [])
     return function (scope, element, attrs) {
       element.bind('click', function () {
         this.select();
+        document.execCommand('copy');
       });
     };
   })
