@@ -1,5 +1,5 @@
 <p>Click + Ctrl/Cmd-C on each block to copy to clipboard.</p>
-<div ng-repeat="macroText in macroList track by $index" style="display:inline-block;margin-right:20px;">
-  <h6>Macro #{{$index+1}}</h6>
-  <textarea style="width:auto" cols="60" rows="16" readonly select-on-click>{{macroText}}</textarea>
+<div ng-repeat="macroObj in macroList track by $index" style="display:inline-block;margin-right:20px;">
+  <h6>Macro #{{$index+1}} (Milliseconds of Wait Time: {{macroObj.macroTotalWait * 1000}})</h6>
+  <textarea style="width:auto" cols="60" rows="16" readonly select-on-click>{{macroObj.macroText}}</textarea>
 </div>
