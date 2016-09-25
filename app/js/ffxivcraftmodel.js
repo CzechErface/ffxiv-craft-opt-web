@@ -392,7 +392,7 @@ function ApplyModifiers(s, action, condition) {
 
         progressIncreaseMultiplier *= nameOfMultiplier;
         if (s.synth.recipe.aspect !== undefined && s.synth.recipe.aspect == element) {
-            progressIncreaseMultiplier *= 2;
+            progressIncreaseMultiplier *= 0.5;
         }
     }
 
